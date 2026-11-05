@@ -1,7 +1,7 @@
 ---
 name: auto-test
 description: This skill should be used when the user writes new code, creates a new file, adds a new function or method, asks about testing, mentions "test", "spec", "coverage", or "TDD", or when source files are created/edited that don't have corresponding test files.
-version: 1.0.1
+version: 1.1.0
 ---
 
 # Auto Test Skill
@@ -84,3 +84,7 @@ Covers: <method list>
 
 <test code>
 ```
+
+## References
+
+Framework detection, test path conventions, source-to-test file mapping and per-framework patterns are in `references/frameworks.md`. Read it before choosing a framework or a test file path.

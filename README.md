@@ -4,10 +4,10 @@ A Claude Code plugin that auto-generates test files when you write new code. Det
 
 ## What It Does
 
-- Detects your test framework (RSpec, pytest, Jest, Vitest, PHPUnit, Go testing, ExUnit, Rust)
+- Detects your test framework (RSpec, pytest, Jest, Vitest, PHPUnit, Go testing, ExUnit, Rust, Minitest)
 - Maps source files to the correct test file paths
 - Generates tests covering happy path, edge cases, and error cases
-- PostToolUse prompt hook reminds you when edited files don't have tests
+- PostToolUse prompt hook reminds you when edited files don't have tests. Add the comment `test-generator: skip` to a file to silence it
 - Matches your project's existing test style and conventions
 
 ## Installation

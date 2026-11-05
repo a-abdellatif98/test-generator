@@ -54,5 +54,56 @@ def test_no_credential_or_env_references():
 
 def test_no_network_or_file_access_references():
     pattern = re.compile(r"https?://|curl |wget |npx |urllib|requests\.|socket|fetch\(|open\(")
-    offenders = [p.name for p in shipped_files() if pattern.search(p.read_text(errors="ignore"))]
+    offenders = [p.name for p in shipped_files() if p.name != "plugin.json" and p.suffix != ".svg" and pattern.search(p.read_text(errors="ignore"))]
     assert offenders == []
+
+
+def test_prompt_hook_is_non_blocking_with_escape_hatch():
+    for h in all_hooks():
+        assert h["continueOnBlock"] is True
+        assert "test-generator: skip" in h["prompt"]
+
+
+def test_agent_and_command_tools_exclude_shell():
+    allowed = {"Read", "Glob", "Grep", "Write"}
+    for path in list((ROOT / "commands").glob("*.md")) + list((ROOT / "agents").glob("*.md")):
+        front = path.read_text().split("---")[1]
+        tools = re.search(r"(?:allowed-tools|tools):\s*\[?([^\]\n]*)", front).group(1)
+        assert {t.strip() for t in tools.split(",")} <= allowed, path.name
+
+
+def test_agent_uses_tools_key():
+    front = (ROOT / "agents" / "test-writer.md").read_text().split("---")[1]
+    assert re.search(r"^tools:", front, re.M)
+    assert "allowed-tools" not in front
+
+
+def test_command_receives_arguments():
+    text = (ROOT / "commands" / "generate-tests.md").read_text()
+    assert "$ARGUMENTS" in text and "argument-hint:" in text.split("---")[1]
+
+
+def test_manifest_has_required_fields():
+    manifest = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
+    for key in ("name", "description", "version", "author", "homepage", "repository", "license", "keywords", "icon"):
+        assert manifest.get(key), key
+    assert manifest["version"] == "1.1.0"
+    assert (ROOT / manifest["icon"]).is_file()
+
+
+def test_no_root_claude_md():
+    assert not (ROOT / "CLAUDE.md").exists()
+
+
+def test_skill_references_exist():
+    skill = (ROOT / "skills" / "auto-test" / "SKILL.md").read_text()
+    names = re.findall(r"references/([\w-]+\.md)", skill)
+    assert names
+    for name in names:
+        assert (ROOT / "skills" / "auto-test" / "references" / name).is_file(), name
+
+
+def test_docs_have_no_em_or_en_dashes():
+    for path in ROOT.rglob("*.md"):
+        text = path.read_text()
+        assert "\u2014" not in text and "\u2013" not in text, path.name

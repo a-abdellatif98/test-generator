@@ -2,7 +2,7 @@
 name: test-writer
 description: Deep test generation agent that analyzes source code and produces comprehensive test suites with edge cases, mocking, and framework-specific patterns
 model: sonnet
-allowed-tools: [Read, Glob, Grep, Write]
+tools: Read, Glob, Grep, Write
 ---
 
 # Test Writer Agent
@@ -90,7 +90,7 @@ Follow these quality standards:
 ### Step 6: Verify
 
 After writing tests:
-- Check for syntax errors
+- Re-read the written file for syntax errors
 - Ensure imports/requires are correct
 - Verify factory/fixture references exist
 - Confirm mock targets match real interfaces

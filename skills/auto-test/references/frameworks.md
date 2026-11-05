@@ -1,6 +1,4 @@
-# Test Generator
-
-You have the test-generator plugin active. Follow these rules whenever the user writes new code, asks for tests, or works on files that lack test coverage.
+# Frameworks and test rules
 
 ## Framework Detection
 
@@ -116,11 +114,3 @@ When generating tests, map source files to test files:
 | `internal/auth/token.go` | `internal/auth/token_test.go` |
 | `lib/my_app/accounts.ex` | `test/my_app/accounts_test.exs` |
 | `src/services/auth.py` | `tests/test_auth.py` |
-
-## Behavior
-
-When the user writes or modifies a source file:
-1. Check if a corresponding test file exists
-2. If no test file exists, offer to generate one
-3. If a test file exists but doesn't cover the new/changed code, suggest additions
-4. Always show the generated tests before writing them
