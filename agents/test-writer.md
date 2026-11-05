@@ -2,7 +2,7 @@
 name: test-writer
 description: Deep test generation agent that analyzes source code and produces comprehensive test suites with edge cases, mocking, and framework-specific patterns
 model: sonnet
-allowed-tools: [Read, Glob, Grep, Write, Bash]
+allowed-tools: [Read, Glob, Grep, Write]
 ---
 
 # Test Writer Agent

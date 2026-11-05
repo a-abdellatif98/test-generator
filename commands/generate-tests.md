@@ -1,7 +1,7 @@
 ---
 description: Generate test files for source files that lack test coverage
 argument-hint: [file-or-directory-path]
-allowed-tools: [Read, Glob, Grep, Write, Bash]
+allowed-tools: [Read, Glob, Grep, Write]
 ---
 
 # Generate Tests

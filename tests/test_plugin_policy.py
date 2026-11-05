@@ -1,0 +1,58 @@
+import json
+import re
+import subprocess
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def all_hooks():
+    config = json.loads((ROOT / "hooks" / "hooks.json").read_text())
+    return [h for groups in config["hooks"].values() for group in groups for h in group["hooks"]]
+
+
+def shipped_files():
+    tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    return [ROOT / f for f in tracked.splitlines() if not f.startswith("tests/")]
+
+
+def test_plugin_ships_no_command_hooks():
+    assert all_hooks()
+    assert all(h["type"] == "prompt" for h in all_hooks())
+
+
+def test_prompt_hook_gets_input_and_has_no_stray_dollar():
+    for h in all_hooks():
+        assert "$ARGUMENTS" in h["prompt"]
+        assert re.findall(r"(?<!\\)\$\w*", h["prompt"]) == ["$ARGUMENTS"]
+
+
+def test_no_preapproved_shell_access():
+    for path in list((ROOT / "commands").glob("*.md")) + list((ROOT / "agents").glob("*.md")):
+        assert "Bash" not in path.read_text().split("---")[1], path.name
+
+
+def test_manifest_version_matches_skill():
+    version = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
+    skill = (ROOT / "skills" / "auto-test" / "SKILL.md").read_text()
+    assert f"version: {version}" in skill
+
+
+def test_no_executable_code_shipped():
+    assert [p.name for p in shipped_files() if p.suffix in {".py", ".sh", ".js", ".rb", ".ts"}] == []
+
+
+def test_no_credential_or_env_references():
+    pattern = re.compile(
+        r"os\.environ|getenv|process\.env|\.env\b|database\.yml|DATABASE_URL|API_KEY|_TOKEN\b"
+        r"|credential|password|secret|\$\{user_config|DISABLE_TEST_REMINDER",
+        re.I,
+    )
+    offenders = [p.name for p in shipped_files() if pattern.search(p.read_text(errors="ignore"))]
+    assert offenders == []
+
+
+def test_no_network_or_file_access_references():
+    pattern = re.compile(r"https?://|curl |wget |npx |urllib|requests\.|socket|fetch\(|open\(")
+    offenders = [p.name for p in shipped_files() if pattern.search(p.read_text(errors="ignore"))]
+    assert offenders == []

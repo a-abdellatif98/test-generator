@@ -1,7 +1,7 @@
 ---
 name: auto-test
 description: This skill should be used when the user writes new code, creates a new file, adds a new function or method, asks about testing, mentions "test", "spec", "coverage", or "TDD", or when source files are created/edited that don't have corresponding test files.
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Auto Test Skill

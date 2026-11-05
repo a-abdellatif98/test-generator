@@ -7,7 +7,7 @@ A Claude Code plugin that auto-generates test files when you write new code. Det
 - Detects your test framework (RSpec, pytest, Jest, Vitest, PHPUnit, Go testing, ExUnit, Rust)
 - Maps source files to the correct test file paths
 - Generates tests covering happy path, edge cases, and error cases
-- PostToolUse hook reminds you when edited files don't have tests
+- PostToolUse prompt hook reminds you when edited files don't have tests
 - Matches your project's existing test style and conventions
 
 ## Installation
@@ -28,17 +28,10 @@ claude plugin install test-generator
 
 ### Automatic Reminders (Hook)
 
-After you edit a source file without a corresponding test file, the plugin prints:
+After you edit a source file with no known test file, the plugin suggests:
 
 ```
-No test file found for user.rb.
-Expected test at: spec/models/user_spec.rb
-Run /generate-tests app/models/user.rb to create one.
-```
-
-Disable with:
-```
-DISABLE_TEST_REMINDER=1
+No test seen for user.rb. Run /generate-tests app/models/user.rb to create one.
 ```
 
 ### Skill (Auto-Activated)
@@ -125,45 +118,31 @@ end
 
 ### Python/pytest - Service test
 
-Source: `src/services/auth.py`
+Source: `src/services/billing.py`
 ```python
-def authenticate(email, password):
-    user = User.find_by_email(email)
-    if not user:
-        raise UserNotFoundError(email)
-    if not user.verify_password(password):
-        raise InvalidPasswordError()
-    return create_token(user)
+def total_price(items, discount=0):
+    if not items:
+        raise EmptyCartError()
+    return sum(i.price for i in items) - discount
 ```
 
-Generated: `tests/test_auth.py`
+Generated: `tests/test_billing.py`
 ```python
 import pytest
-from unittest.mock import patch, MagicMock
-from src.services.auth import authenticate, UserNotFoundError, InvalidPasswordError
+from unittest.mock import MagicMock
+from src.services.billing import total_price, EmptyCartError
 
-class TestAuthenticate:
-    def test_returns_token_for_valid_credentials(self):
-        user = MagicMock()
-        user.verify_password.return_value = True
-        with patch("src.services.auth.User") as MockUser:
-            MockUser.find_by_email.return_value = user
-            token = authenticate("a@b.com", "pass123")
-            assert token is not None
+class TestTotalPrice:
+    def test_sums_item_prices(self):
+        items = [MagicMock(price=5), MagicMock(price=7)]
+        assert total_price(items) == 12
 
-    def test_raises_when_user_not_found(self):
-        with patch("src.services.auth.User") as MockUser:
-            MockUser.find_by_email.return_value = None
-            with pytest.raises(UserNotFoundError):
-                authenticate("missing@b.com", "pass")
+    def test_applies_discount(self):
+        assert total_price([MagicMock(price=10)], discount=3) == 7
 
-    def test_raises_when_password_invalid(self):
-        user = MagicMock()
-        user.verify_password.return_value = False
-        with patch("src.services.auth.User") as MockUser:
-            MockUser.find_by_email.return_value = user
-            with pytest.raises(InvalidPasswordError):
-                authenticate("a@b.com", "wrong")
+    def test_raises_for_empty_cart(self):
+        with pytest.raises(EmptyCartError):
+            total_price([])
 ```
 
 ## License
