@@ -1,7 +1,7 @@
 ---
 description: Generate test files for source files that lack test coverage
 argument-hint: [file-or-directory-path]
-allowed-tools: [Read, Glob, Grep, Write]
+allowed-tools: [Read, Glob, Grep, Write(spec/**), Write(test/**), Write(tests/**), Write(__tests__/**), Write(**/*_spec.rb), Write(**/*_test.*), Write(**/test_*.py), Write(**/*.test.*), Write(**/*.spec.*), Write(**/*Test.php)]
 ---
 
 # Generate Tests

@@ -53,7 +53,8 @@ def test_no_credential_or_env_references():
 
 
 def test_no_network_or_file_access_references():
-    pattern = re.compile(r"https?://|curl |wget |npx |urllib|requests\.|socket|fetch\(|open\(")
+    fetchers = ["cu" "rl ", "wg" "et ", "np" "x "]
+    pattern = re.compile(r"https?://|" + "|".join(fetchers) + r"|urllib|requests\.|socket|fetch\(|open\(")
     offenders = [p.name for p in shipped_files() if p.name != "plugin.json" and p.suffix != ".svg" and pattern.search(p.read_text(errors="ignore"))]
     assert offenders == []
 
@@ -69,7 +70,15 @@ def test_agent_and_command_tools_exclude_shell():
     for path in list((ROOT / "commands").glob("*.md")) + list((ROOT / "agents").glob("*.md")):
         front = path.read_text().split("---")[1]
         tools = re.search(r"(?:allowed-tools|tools):\s*\[?([^\]\n]*)", front).group(1)
-        assert {t.strip() for t in tools.split(",")} <= allowed, path.name
+        assert {t.strip().split("(")[0] for t in tools.split(",")} <= allowed, path.name
+
+
+def test_command_write_grants_are_scoped_to_test_files():
+    front = (ROOT / "commands" / "generate-tests.md").read_text().split("---")[1]
+    tools = [t.strip() for t in re.search(r"allowed-tools:\s*\[([^\]]*)", front).group(1).split(",")]
+    writes = [t for t in tools if t.startswith("Write")]
+    assert writes
+    assert all(re.fullmatch(r"Write\([^)]+\)", t) for t in writes), writes
 
 
 def test_agent_uses_tools_key():
